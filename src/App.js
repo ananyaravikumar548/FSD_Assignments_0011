@@ -26,6 +26,14 @@ function App() {
     const { name, value } = e.target;
 
     setFormValues((prev) => {
+      // Allow only letters and spaces for cardholder name
+      if (name === 'cardholder') {
+        return {
+          ...prev,
+          cardholder: value.replace(/[^a-zA-Z\s]/g, ''),
+        };
+      }
+
       if (name === 'cardNumber') {
         return {
           ...prev,
@@ -70,8 +78,7 @@ function App() {
     if (!formValues.cardNumber.trim()) {
       newErrors.cardNumber = "Can't be blank";
     } else if (!/^\d{16}$/.test(digitsOnly)) {
-      newErrors.cardNumber =
-        'Enter a valid 16-digit card number';
+      newErrors.cardNumber = 'Enter a valid 16-digit card number';
     }
 
     if (!formValues.expMonth.trim()) {
@@ -119,36 +126,27 @@ function App() {
     formValues.cardNumber || '0000 0000 0000 0000';
 
   const displayCardholder =
-    formValues.cardholder.toUpperCase() ||
-    'JANE APPLESEED';
+    formValues.cardholder.toUpperCase() || 'JANE APPLESEED';
 
-  const displayMonth =
-    formValues.expMonth || '00';
+  const displayMonth = formValues.expMonth || '00';
 
-  const displayYear =
-    formValues.expYear || '00';
+  const displayYear = formValues.expYear || '00';
 
-  const displayCvc =
-    formValues.cvc || '000';
+  const displayCvc = formValues.cvc || '000';
 
   return (
     <main className="app-shell">
-
       <section className="card-panel">
         <div className="panel-gradient"></div>
 
         <div className="cards-stack">
-
           <article className="credit-card credit-card-front">
-
             <div className="card-brand">
               <span className="brand-dot brand-dot-large"></span>
               <span className="brand-dot brand-dot-small"></span>
             </div>
 
-            <p className="card-number-text">
-              {displayCardNumber}
-            </p>
+            <p className="card-number-text">{displayCardNumber}</p>
 
             <div className="card-front-footer">
               <span>{displayCardholder}</span>
@@ -157,37 +155,25 @@ function App() {
                 {displayMonth}/{displayYear}
               </span>
             </div>
-
           </article>
 
           <article className="credit-card credit-card-back">
-
             <div className="card-strip"></div>
 
-            <div className="card-cvc-box">
-              {displayCvc}
-            </div>
+            <div className="card-cvc-box">{displayCvc}</div>
 
             <div className="card-back-lines">
               <span></span>
               <span></span>
               <span></span>
             </div>
-
           </article>
-
         </div>
       </section>
 
       <section className="content-panel">
-
         {!showSuccess ? (
-
-          <form
-            className="card-form"
-            onSubmit={handleSubmit}
-          >
-
+          <form className="card-form" onSubmit={handleSubmit}>
             <div className="form-control">
               <label>Cardholder Name</label>
 
@@ -197,17 +183,11 @@ function App() {
                 placeholder="e.g. Jane Appleseed"
                 value={formValues.cardholder}
                 onChange={handleChange}
-                className={
-                  errors.cardholder
-                    ? 'input-error'
-                    : ''
-                }
+                className={errors.cardholder ? 'input-error' : ''}
               />
 
               {errors.cardholder && (
-                <p className="error-text">
-                  {errors.cardholder}
-                </p>
+                <p className="error-text">{errors.cardholder}</p>
               )}
             </div>
 
@@ -220,28 +200,19 @@ function App() {
                 placeholder="e.g. 1234 5678 9123 0000"
                 value={formValues.cardNumber}
                 onChange={handleChange}
-                className={
-                  errors.cardNumber
-                    ? 'input-error'
-                    : ''
-                }
+                className={errors.cardNumber ? 'input-error' : ''}
               />
 
               {errors.cardNumber && (
-                <p className="error-text">
-                  {errors.cardNumber}
-                </p>
+                <p className="error-text">{errors.cardNumber}</p>
               )}
             </div>
 
             <div className="row-fields">
-
               <div className="form-control">
-
                 <label>Exp. Date (MM/YY)</label>
 
                 <div className="inline-fields">
-
                   <input
                     type="text"
                     name="expMonth"
@@ -257,21 +228,16 @@ function App() {
                     value={formValues.expYear}
                     onChange={handleChange}
                   />
-
                 </div>
 
-                {(errors.expMonth ||
-                  errors.expYear) && (
+                {(errors.expMonth || errors.expYear) && (
                   <p className="error-text">
-                    {errors.expMonth ||
-                      errors.expYear}
+                    {errors.expMonth || errors.expYear}
                   </p>
                 )}
-
               </div>
 
               <div className="form-control">
-
                 <label>CVC</label>
 
                 <input
@@ -280,59 +246,31 @@ function App() {
                   placeholder="e.g. 123"
                   value={formValues.cvc}
                   onChange={handleChange}
-                  className={
-                    errors.cvc
-                      ? 'input-error'
-                      : ''
-                  }
+                  className={errors.cvc ? 'input-error' : ''}
                 />
 
-                {errors.cvc && (
-                  <p className="error-text">
-                    {errors.cvc}
-                  </p>
-                )}
-
+                {errors.cvc && <p className="error-text">{errors.cvc}</p>}
               </div>
-
             </div>
 
-            <button
-              type="submit"
-              className="confirm-button"
-            >
+            <button type="submit" className="confirm-button">
               Confirm
             </button>
-
           </form>
-
         ) : (
-
           <div className="success-panel">
-
-            <div className="success-icon">
-              ✓
-            </div>
+            <div className="success-icon">✓</div>
 
             <h1>Thank You!</h1>
 
-            <p>
-              We've added your card details.
-            </p>
+            <p>We've added your card details.</p>
 
-            <button
-              className="confirm-button"
-              onClick={handleContinue}
-            >
+            <button className="confirm-button" onClick={handleContinue}>
               Continue
             </button>
-
           </div>
-
         )}
-
       </section>
-
     </main>
   );
 }
