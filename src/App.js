@@ -1,277 +1,309 @@
-import './App.css';
 import { useState } from 'react';
+import './App.css';
+
+const LOCATION_DATA = {
+  Karnataka: ['Bengaluru', 'Mysuru', 'Hubballi'],
+  Delhi: ['New Delhi', 'North Delhi'],
+  Maharashtra: ['Mumbai', 'Pune'],
+};
+
+const PROGRAMME_COURSES = {
+  Undergraduate: ['B.Tech.', 'BBA', 'B.Des.', 'B.A. LL.B.'],
+  Postgraduate: ['M.Tech.', 'MBA', 'M.Des.', 'LL.M.'],
+  Doctoral: ['Ph.D.'],
+};
+
+const INITIAL_FORM_STATE = {
+  name: '',
+  email: '',
+  phone: '',
+  otp: '',
+  state: '',
+  city: '',
+  campus: '',
+  programme: '',
+  course: '',
+  captcha: '',
+  consent: false,
+};
+
+const Field = ({ id, label, children, required = false, error = '' }) => (
+  <div className="field-group">
+    <label htmlFor={id} className="field-label">
+      {label} {required && <span aria-hidden="true" className="required-asterisk">*</span>}
+    </label>
+    {children}
+    {error && <span className="field-error-msg" id={`${id}-error`}>{error}</span>}
+  </div>
+);
 
 function App() {
-  const initialCard = {
-    cardholder: '',
-    cardNumber: '',
-    expMonth: '',
-    expYear: '',
-    cvc: '',
-  };
-
-  const [formValues, setFormValues] = useState(initialCard);
+  const [submitted, setSubmitted] = useState(false);
+  const [attempted, setAttempted] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [form, setForm] = useState(INITIAL_FORM_STATE);
 
-  const formatCardNumber = (value) => {
-    return value
-      .replace(/\D/g, '')
-      .slice(0, 16)
-      .replace(/(\d{4})(?=\d)/g, '$1 ')
-      .trim();
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormValues((prev) => {
-      // Allow only letters and spaces for cardholder name
-      if (name === 'cardholder') {
-        return {
-          ...prev,
-          cardholder: value.replace(/[^a-zA-Z\s]/g, ''),
-        };
-      }
-
-      if (name === 'cardNumber') {
-        return {
-          ...prev,
-          cardNumber: formatCardNumber(value),
-        };
-      }
-
-      if (
-        name === 'expMonth' ||
-        name === 'expYear' ||
-        name === 'cvc'
-      ) {
-        const maxLength = name === 'cvc' ? 3 : 2;
-
-        return {
-          ...prev,
-          [name]: value.replace(/\D/g, '').slice(0, maxLength),
-        };
-      }
-
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: '',
-    }));
-  };
-
-  const validateForm = () => {
+  const validateForm = (data) => {
     const newErrors = {};
-
-    const digitsOnly = formValues.cardNumber.replace(/\s/g, '');
-
-    if (!formValues.cardholder.trim()) {
-      newErrors.cardholder = "Can't be blank";
-    }
-
-    if (!formValues.cardNumber.trim()) {
-      newErrors.cardNumber = "Can't be blank";
-    } else if (!/^\d{16}$/.test(digitsOnly)) {
-      newErrors.cardNumber = 'Enter a valid 16-digit card number';
-    }
-
-    if (!formValues.expMonth.trim()) {
-      newErrors.expMonth = "Can't be blank";
-    } else if (
-      Number(formValues.expMonth) < 1 ||
-      Number(formValues.expMonth) > 12
-    ) {
-      newErrors.expMonth = 'Invalid month';
-    }
-
-    if (!formValues.expYear.trim()) {
-      newErrors.expYear = "Can't be blank";
-    }
-
-    if (!formValues.cvc.trim()) {
-      newErrors.cvc = "Can't be blank";
-    } else if (!/^\d{3}$/.test(formValues.cvc)) {
-      newErrors.cvc = 'Invalid CVC';
-    }
-
+    if (!data.name.trim()) newErrors.name = 'Full name is required';
+    if (!data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)) newErrors.email = 'Valid email address is required';
+    if (!data.phone.trim() || !/^\d{10}$/.test(data.phone)) newErrors.phone = '10-digit mobile number is required';
+    if (!data.consent) newErrors.consent = 'You must agree to continue';
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleChange = (event) => {
+    const { name, value, type, checked } = event.target;
+    const val = type === 'checkbox' ? checked : value;
 
-    const validationErrors = validateForm();
+    setForm((prev) => {
+      const nextForm = { ...prev, [name]: val };
+      if (name === 'state') nextForm.city = '';
+      if (name === 'programme') nextForm.course = '';
+      return nextForm;
+    });
 
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+    if (attempted) {
+      setErrors((prevErrors) => ({ ...prevErrors, [name]: undefined }));
     }
+  };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setAttempted(true);
+    
+    const validationErrors = validateForm(form);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length === 0) {
+      setSubmitted(true);
+    }
+  };
+
+  const handleReset = () => {
+    setForm(INITIAL_FORM_STATE);
     setErrors({});
-    setShowSuccess(true);
+    setAttempted(false);
+    setSubmitted(false);
   };
-
-  const handleContinue = () => {
-    setShowSuccess(false);
-    setFormValues(initialCard);
-  };
-
-  const displayCardNumber =
-    formValues.cardNumber || '0000 0000 0000 0000';
-
-  const displayCardholder =
-    formValues.cardholder.toUpperCase() || 'JANE APPLESEED';
-
-  const displayMonth = formValues.expMonth || '00';
-
-  const displayYear = formValues.expYear || '00';
-
-  const displayCvc = formValues.cvc || '000';
 
   return (
-    <main className="app-shell">
-      <section className="card-panel">
-        <div className="panel-gradient"></div>
-
-        <div className="cards-stack">
-          <article className="credit-card credit-card-front">
-            <div className="card-brand">
-              <span className="brand-dot brand-dot-large"></span>
-              <span className="brand-dot brand-dot-small"></span>
-            </div>
-
-            <p className="card-number-text">{displayCardNumber}</p>
-
-            <div className="card-front-footer">
-              <span>{displayCardholder}</span>
-
-              <span>
-                {displayMonth}/{displayYear}
-              </span>
-            </div>
-          </article>
-
-          <article className="credit-card credit-card-back">
-            <div className="card-strip"></div>
-
-            <div className="card-cvc-box">{displayCvc}</div>
-
-            <div className="card-back-lines">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </article>
+    <div className="page">
+      <header className="topbar">
+        <div className="brand-mark">
+          <img src="/image.png" alt="RV University Logo" />
+          <div>
+            <strong>RV<br /><em>UNIVERSITY</em></strong>
+            <small>Go, change the world</small>
+          </div>
         </div>
-      </section>
+        <p>An initiative of RV EDUCATIONAL INSTITUTIONS</p>
+      </header>
 
-      <section className="content-panel">
-        {!showSuccess ? (
-          <form className="card-form" onSubmit={handleSubmit}>
-            <div className="form-control">
-              <label>Cardholder Name</label>
+      <div className="sky-band" aria-hidden="true" />
 
-              <input
-                type="text"
-                name="cardholder"
-                placeholder="e.g. Jane Appleseed"
-                value={formValues.cardholder}
-                onChange={handleChange}
-                className={errors.cardholder ? 'input-error' : ''}
-              />
-
-              {errors.cardholder && (
-                <p className="error-text">{errors.cardholder}</p>
-              )}
+      {/* Centered Single Form Container */}
+      <main className="form-wrapper">
+        <div className="admission-card">
+          {submitted ? (
+            <div className="success" role="alert">
+              <span className="success-icon" aria-hidden="true">✓</span>
+              <h2>Thank you!</h2>
+              <p>We have received your interest. Our admissions team will be in touch soon.</p>
+              <button type="button" onClick={handleReset}>
+                Submit another response
+              </button>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="form-heading">
+                <p>UNDERGRADUATE · POSTGRADUATE · DOCTORAL</p>
+                <h1>Start your journey <span>with RV University</span></h1>
+                <small>Admissions for the 2026 academic year are now open.</small>
+              </div>
 
-            <div className="form-control">
-              <label>Card Number</label>
-
-              <input
-                type="text"
-                name="cardNumber"
-                placeholder="e.g. 1234 5678 9123 0000"
-                value={formValues.cardNumber}
-                onChange={handleChange}
-                className={errors.cardNumber ? 'input-error' : ''}
-              />
-
-              {errors.cardNumber && (
-                <p className="error-text">{errors.cardNumber}</p>
-              )}
-            </div>
-
-            <div className="row-fields">
-              <div className="form-control">
-                <label>Exp. Date (MM/YY)</label>
-
-                <div className="inline-fields">
+              {/* Section 1: Personal Details */}
+              <fieldset className="form-section">
+                <legend><h3>Your details</h3></legend>
+                
+                <Field id="name" label="Applicant name" required error={errors.name}>
                   <input
+                    id="name"
+                    name="name"
                     type="text"
-                    name="expMonth"
-                    placeholder="MM"
-                    value={formValues.expMonth}
+                    placeholder="Enter your full name"
+                    value={form.name}
                     onChange={handleChange}
+                    aria-required="true"
+                    aria-invalid={!!errors.name}
                   />
+                </Field>
 
+                <Field id="email" label="Email address" required error={errors.email}>
                   <input
-                    type="text"
-                    name="expYear"
-                    placeholder="YY"
-                    value={formValues.expYear}
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={form.email}
                     onChange={handleChange}
+                    aria-required="true"
+                    aria-invalid={!!errors.email}
                   />
+                </Field>
+
+                <div className="phone-row">
+                  <Field id="countryCode" label="Code">
+                    <select id="countryCode" name="countryCode" aria-label="Country Code">
+                      <option value="+91">+91 (IN)</option>
+                    </select>
+                  </Field>
+
+                  <Field id="phone" label="Mobile number" required error={errors.phone}>
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      placeholder="Enter 10 digit number"
+                      inputMode="numeric"
+                      maxLength={10}
+                      value={form.phone}
+                      onChange={handleChange}
+                      aria-required="true"
+                      aria-invalid={!!errors.phone}
+                    />
+                  </Field>
                 </div>
 
-                {(errors.expMonth || errors.expYear) && (
-                  <p className="error-text">
-                    {errors.expMonth || errors.expYear}
-                  </p>
-                )}
+                <Field id="otp" label="One-time password">
+                  <input
+                    id="otp"
+                    name="otp"
+                    type="text"
+                    placeholder="Enter OTP (if received)"
+                    value={form.otp}
+                    onChange={handleChange}
+                  />
+                </Field>
+              </fieldset>
+
+              {/* Section 2: Course Preferences */}
+              <fieldset className="form-section course-section">
+                <legend><h3>Your preference</h3></legend>
+                <div className="select-grid">
+                  <Field id="state" label="State">
+                    <select id="state" name="state" value={form.state} onChange={handleChange}>
+                      <option value="">Select state</option>
+                      {Object.keys(LOCATION_DATA).map((state) => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field id="city" label="City">
+                    <select
+                      id="city"
+                      name="city"
+                      value={form.city}
+                      onChange={handleChange}
+                      disabled={!form.state}
+                    >
+                      <option value="">Select city</option>
+                      {form.state && LOCATION_DATA[form.state]?.map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field id="campus" label="Campus">
+                    <select id="campus" name="campus" value={form.campus} onChange={handleChange}>
+                      <option value="">Choose campus</option>
+                      <option value="JP Nagar">JP Nagar</option>
+                      <option value="Jayanagar">Jayanagar</option>
+                    </select>
+                  </Field>
+
+                  <Field id="programme" label="Programme">
+                    <select id="programme" name="programme" value={form.programme} onChange={handleChange}>
+                      <option value="">Choose programme</option>
+                      {Object.keys(PROGRAMME_COURSES).map((prog) => (
+                        <option key={prog} value={prog}>{prog}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                <Field id="course" label="Course">
+                  <select
+                    id="course"
+                    name="course"
+                    value={form.course}
+                    onChange={handleChange}
+                    disabled={!form.programme}
+                  >
+                    <option value="">Select a course you are interested in</option>
+                    {form.programme && PROGRAMME_COURSES[form.programme]?.map((course) => (
+                      <option key={course} value={course}>{course}</option>
+                    ))}
+                  </select>
+                </Field>
+              </fieldset>
+
+              {/* Section 3: Captcha */}
+              <div className="captcha">
+                <span className="captcha-code" aria-label="Captcha visual code">dfo55f</span>
+                <button type="button" aria-label="Refresh captcha code">↻</button>
+                <Field id="captcha" label="Verification code">
+                  <input
+                    id="captcha"
+                    name="captcha"
+                    type="text"
+                    placeholder="Enter the code"
+                    value={form.captcha}
+                    onChange={handleChange}
+                  />
+                </Field>
               </div>
 
-              <div className="form-control">
-                <label>CVC</label>
-
-                <input
-                  type="text"
-                  name="cvc"
-                  placeholder="e.g. 123"
-                  value={formValues.cvc}
-                  onChange={handleChange}
-                  className={errors.cvc ? 'input-error' : ''}
-                />
-
-                {errors.cvc && <p className="error-text">{errors.cvc}</p>}
+              {/* Consent & Submit */}
+              <div className="consent-wrapper">
+                <label htmlFor="consent" className="consent">
+                  <input
+                    id="consent"
+                    name="consent"
+                    type="checkbox"
+                    checked={form.consent}
+                    onChange={handleChange}
+                    aria-required="true"
+                  />
+                  <span>
+                    I agree to receive information regarding my submitted application by signing up on RV University *
+                  </span>
+                </label>
+                {errors.consent && <p className="field-error-msg">{errors.consent}</p>}
               </div>
-            </div>
 
-            <button type="submit" className="confirm-button">
-              Confirm
-            </button>
-          </form>
-        ) : (
-          <div className="success-panel">
-            <div className="success-icon">✓</div>
+              {attempted && Object.keys(errors).length > 0 && (
+                <p className="form-error" role="alert">
+                  Please correct the errors highlighted above before registering.
+                </p>
+              )}
 
-            <h1>Thank You!</h1>
+              <button className="register" type="submit">
+                Register
+              </button>
 
-            <p>We've added your card details.</p>
-
-            <button className="confirm-button" onClick={handleContinue}>
-              Continue
-            </button>
-          </div>
-        )}
-      </section>
-    </main>
+              <div className="login-link">
+                Already have an Account? <button type="button" className="link-btn">Login</button>
+                <br />
+                <button type="button" className="link-btn">Resend Verification Email</button>
+              </div>
+            </form>
+          )}
+        </div>
+      </main>
+      <footer />
+    </div>
   );
 }
 
