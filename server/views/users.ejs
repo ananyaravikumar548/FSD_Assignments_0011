@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Family Management</title><link rel="stylesheet" href="/styles.css"></head>
+<body><main class="shell">
+  <header class="page-header"><div><p class="eyebrow">Family directory</p><h1>Users</h1><p class="muted">Create a profile, then add children to that family.</p></div></header>
+  <section class="panel"><h2>Create user</h2>
+    <form action="/users" method="post" class="form-grid">
+      <label>First name<input name="firstName" required></label><label>Last name<input name="lastName" required></label>
+      <label>Email<input name="email" type="email" required></label><label>Phone<input name="phone" type="tel" required></label>
+      <button type="submit">Create user</button>
+    </form>
+  </section>
+  <section class="panel"><div class="section-heading"><div><h2>Family profiles</h2><% if (message) { %><p class="muted"><%= message %></p><% } %></div>
+    <form action="/users/search" method="get" onsubmit="event.preventDefault(); const value=this.name.value.trim(); if(value) location.href='/users/search/'+encodeURIComponent(value);"><label class="search-label">Search first name<input name="name" placeholder="e.g. Danish"></label><button class="secondary" type="submit">Search</button></form>
+  </div>
+  <% if (users.length === 0) { %><p class="empty">No users yet. Create the first profile above.</p><% } else { %>
+    <div class="user-list"><% users.forEach(user => { %><a class="user-row" href="/users/<%= user._id %>"><span class="avatar"><%= user.firstName.charAt(0).toUpperCase() %></span><span><strong><%= user.firstName %> <%= user.lastName %></strong><small><%= user.email %> · <%= user.phone %></small></span><span class="arrow">View profile →</span></a><% }) %></div>
+  <% } %>
+</section></main></body></html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><%= user.firstName %> <%= user.lastName %> · Family Management</title><link rel="stylesheet" href="/styles.css"></head>
+<body><main class="shell">
+  <a class="back-link" href="/users">← All users</a>
+  <header class="profile-header"><div class="avatar large"><%= user.firstName.charAt(0).toUpperCase() %></div><div><p class="eyebrow">Family profile</p><h1><%= user.firstName %> <%= user.lastName %></h1><p class="muted"><a href="mailto:<%= user.email %>"><%= user.email %></a><span class="dot">·</span><%= user.phone %></p></div></header>
+  <section class="panel"><div class="section-heading"><div><p class="eyebrow">Family members</p><h2>Children <span class="count"><%= children.length %></span></h2></div><a class="button" href="/users/<%= user._id %>/children/new">＋ Add child</a></div>
+  <% if (children.length === 0) { %><p class="empty">No children found for this user.</p><% } else { %><div class="children-list">
+    <% children.forEach(child => { %><article class="child-row" data-child-id="<%= child._id %>"><a class="child-open-link" href="/users/<%= user._id %>/children/<%= child._id %>" aria-label="Open <%= child.firstName %> <%= child.lastName %>'s profile"><div class="child-avatar"><%= child.firstName.charAt(0).toUpperCase() %></div><div class="child-info"><span class="child-name"><%= child.firstName %> <%= child.lastName %></span><span><%= child.age %> years old</span><span class="muted"><%= child.email %></span></div></a><div class="actions"><button class="secondary edit-child" type="button" data-name="<%= child.firstName %>" data-last="<%= child.lastName %>" data-age="<%= child.age %>" data-email="<%= child.email %>">Update</button><button class="danger delete-child" type="button">Delete</button></div></article><% }) %>
+  </div><% } %></section>
+</main>
+<script>
+document.querySelectorAll('.edit-child').forEach(button => button.addEventListener('click', async () => {
+  const row = button.closest('[data-child-id]');
+  const firstName = prompt('First name', button.dataset.name); if (firstName === null) return;
+  const lastName = prompt('Last name', button.dataset.last); if (lastName === null) return;
+  const age = prompt('Age', button.dataset.age); if (age === null) return;
+  const email = prompt('Email', button.dataset.email); if (email === null) return;
+  const response = await fetch('/children/' + row.dataset.childId, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({firstName,lastName,age,email}) });
+  const result = await response.json(); if (!response.ok) return alert(result.message || 'Could not update child.'); location.reload();
+}));
+document.querySelectorAll('.delete-child').forEach(button => button.addEventListener('click', async () => {
+  if (!confirm('Delete this child?')) return;
+  const row = button.closest('[data-child-id]');
+  const response = await fetch('/children/' + row.dataset.childId, { method: 'DELETE' });
+  const result = await response.json(); if (!response.ok) return alert(result.message || 'Could not delete child.'); location.reload();
+}));
+</script></body></html>

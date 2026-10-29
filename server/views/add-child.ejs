@@ -1,0 +1,4 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Add child · <%= user.firstName %></title><link rel="stylesheet" href="/styles.css"></head>
+<body><main class="shell narrow"><a class="back-link" href="/users/<%= user._id %>">← Back to <%= user.firstName %>'s profile</a><section class="panel"><p class="eyebrow">New family member</p><h1>Add a child</h1><p class="muted">This child will be linked to <strong><%= user.firstName %> <%= user.lastName %></strong>.</p>
+<form action="/users/<%= user._id %>/children" method="post" class="form-grid single"><label>First name<input name="firstName" required></label><label>Last name<input name="lastName" required></label><label>Age<input name="age" type="number" min="0" step="1" required></label><label>Email<input name="email" type="email" required></label><button type="submit">Add child</button></form></section></main></body></html>
